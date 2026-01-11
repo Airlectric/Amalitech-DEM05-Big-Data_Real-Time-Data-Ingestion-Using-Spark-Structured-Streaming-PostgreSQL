@@ -19,7 +19,7 @@ def generate_fake_event():
         'user_id': random.randint(1, 1000),
         'action': random.choice(['view', 'purchase']),
         'product_id': random.randint(1001, 2000),
-        'product_name': random.choice(['Laptop', 'Phone', 'Headphones', 'Book', 'Shoes']),
+        'product_name': random.choice(['Laptop', 'Phone', 'Headphones', 'Book', 'Shoes','Bags', 'Watch']),
         'price': round(random.uniform(10.0, 500.0), 2),
         'timestamp': datetime.now().isoformat()
     }
