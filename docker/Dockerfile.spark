@@ -1,0 +1,19 @@
+# Official Apache Spark image
+FROM apache/spark:3.5.1
+
+# Switch to root to install Python dependencies
+USER root
+
+# Copy and install Python dependencies
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Set working directory inside container
+WORKDIR /opt/spark/app
+
+# Copy project files needed at build time (optional but good practice)
+COPY src/ ./src/
+COPY sql/ ./sql/
+
+# Switch back to non-root user (security)
+USER spark

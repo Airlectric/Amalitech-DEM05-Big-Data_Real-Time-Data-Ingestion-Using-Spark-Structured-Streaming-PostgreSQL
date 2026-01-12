@@ -19,7 +19,7 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 
-# Read streaming CSVs (schema inference for simplicity; define explicit schema for prod)
+# Read streaming CSVs (schema inference for simplicity; will define schema explicitly for prod)
 schema = "user_id LONG, action STRING, product_id LONG, product_name STRING, price DOUBLE, timestamp STRING"
 streaming_df = spark.readStream \
     .format("csv") \
