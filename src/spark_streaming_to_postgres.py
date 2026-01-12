@@ -15,7 +15,7 @@ DATA_DIR = os.getenv("DATA_DIR")
 # Initialize Spark with PostgreSQL JDBC
 spark = SparkSession.builder \
     .appName("EcommerceStreaming") \
-    .config("spark.jars", "/home/airlectric/Amalitech_projects/DEM05_Big_Data_Spark_Airflow/real-time-ecommerce-pipeline/lib/postgresql-42.7.1.jar") \
+    .config("spark.jars", "/opt/spark/app/lib/postgresql-42.7.1.jar") \
     .getOrCreate()
 
 

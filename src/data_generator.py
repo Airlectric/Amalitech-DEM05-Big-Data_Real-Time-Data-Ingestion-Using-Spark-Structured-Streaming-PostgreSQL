@@ -5,8 +5,8 @@ import pandas as pd
 from datetime import datetime
 
 # Configurable parameters for efficiency
-OUTPUT_DIR = '../data/events/'  # Relative to src/
-NUM_BATCHES = 10  # Number of files to generate (simulate streaming)
+OUTPUT_DIR = '/opt/spark/app/data/events'
+NUM_BATCHES = 20  # Number of files to generate (simulate streaming)
 BATCH_SIZE = 100  # Events per file (small for low memory)
 SLEEP_INTERVAL = 5  # Seconds between files (simulate real-time)
 

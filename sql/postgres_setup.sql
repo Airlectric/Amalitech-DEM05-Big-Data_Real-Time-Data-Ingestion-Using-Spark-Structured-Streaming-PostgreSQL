@@ -1,5 +1,5 @@
 -- Step 1: Create the database 
-CREATE DATABASE ecommerce_database;
+--CREATE DATABASE ecommerce_database;
 
 -- Step 2: Connect to the new database
 \c ecommerce_database;

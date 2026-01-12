@@ -1,19 +1,29 @@
-# Official Apache Spark image
 FROM apache/spark:3.5.1
 
-# Switch to root to install Python dependencies
 USER root
 
-# Copy and install Python dependencies
+# Install Postgres client
+RUN apt-get update && \
+    apt-get install -y postgresql-client && \
+    apt-get clean
+
+# Install Python dependencies
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Set working directory inside container
+# Set working directory
 WORKDIR /opt/spark/app
 
-# Copy project files needed at build time (optional but good practice)
+# Copy project files
 COPY src/ ./src/
 COPY sql/ ./sql/
+COPY lib/ ./lib/
+COPY startup.sh ./startup.sh
 
-# Switch back to non-root user (security)
+# Switch to spark user
 USER spark
+
+ENV PATH="/opt/spark/bin:$PATH"
+
+# Default command runs the startup script
+CMD ["./startup.sh"]
