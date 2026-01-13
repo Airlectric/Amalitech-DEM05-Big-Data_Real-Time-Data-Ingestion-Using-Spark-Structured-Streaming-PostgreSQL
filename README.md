@@ -17,20 +17,20 @@ This project demonstrates a complete near-real-time data pipeline that:
 ```
 real-time-ecommerce-pipeline/
 ├── src/
-│   ├── data_generator.py                    → Event generator (with intentional data issues)
-│   └── spark_streaming_to_postgres.py       → Streaming job + transformations + PostgreSQL sink
+│   ├── data_generator.py                     Event generator (with intentional data issues)
+│   └── spark_streaming_to_postgres.py        Streaming job + transformations + PostgreSQL sink
 ├── sql/
-│   └── postgres_setup.sql                   → Database, table, constraints & indexes
+│   └── postgres_setup.sql                    Database, table, constraints & indexes
 ├── config/
-│   └── postgres_connection_details.txt      → DB connection template (do NOT commit!)
-├── docs/                                    → All deliverable documentation
+│   └── postgres_connection_details.txt       DB connection template (do NOT commit!)
+├── docs/                                     All deliverable documentation
 │   ├── project_overview.md
 │   ├── user_guide.md
 │   ├── test_cases.md
 │   ├── performance_metrics.md
 │   └── system_architecture.png
 ├── data/
-│   └── events/                              → Generated CSV files (ephemeral)
+│   └── events/                               Generated CSV files (ephemeral)
 ├── requirements.txt
 └── README.md                                ← You are here
 ```
@@ -68,7 +68,7 @@ All detailed documentation lives in the `docs/` folder:
      src/spark_streaming_to_postgres.py
    ```
 
-For full instructions, environment setup, Docker notes, troubleshooting and verification steps →  
+For full instructions, environment setup, Docker notes, troubleshooting and verification steps   
 please read > **[docs/user_guide.md](docs/user_guide.md)**
 
 ### Learning Objectives Covered
