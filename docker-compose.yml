@@ -35,7 +35,8 @@ services:
       - ./data:/opt/spark/app/data
       - ./sql:/opt/spark/app/sql
       - ./lib:/opt/spark/app/lib
-      - ./logs/spark:/opt/spark/app/logs   # New: Spark logs
+      - ./checkpoint:/opt/spark/app/checkpoint 
+      - ./logs/spark:/opt/spark/app/logs 
     command: >
       sh -c "mkdir -p /opt/spark/app/logs &&
              exec ./startup.sh > /opt/spark/app/logs/spark_pipeline.log 2>&1"

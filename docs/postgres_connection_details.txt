@@ -1,0 +1,52 @@
+PostgreSQL Connection Details
+=============================
+
+This file documents the database connection parameters used by the
+Spark Structured Streaming application in this project.
+
+These values are referenced when configuring the JDBC connection
+between Apache Spark and PostgreSQL.
+
+NOTE:
+- This file is for learning and documentation purposes only.
+- In production systems, credentials should be managed using
+  environment variables or a secrets manager.
+- This file should be excluded from version control in real projects.
+
+
+Database Host
+-------------
+Host: postgres
+Description: Docker service name of the PostgreSQL container
+
+
+Database Port
+-------------
+Port: 5432
+Description: Default PostgreSQL port
+
+
+Database Name
+-------------
+Database: ecommerce_database
+Description: Database that stores processed e-commerce events
+
+
+Database User
+-------------
+Username: data_user
+Description: Application user with write access to events table
+
+
+Database Password
+-----------------
+Password: data_password
+Description: Password for the application database user
+
+
+JDBC URL (Derived)
+------------------
+jdbc:postgresql://postgres:5432/ecommerce_database
+
+This JDBC URL is used by Spark when writing streaming data
+to PostgreSQL using the JDBC sink.
