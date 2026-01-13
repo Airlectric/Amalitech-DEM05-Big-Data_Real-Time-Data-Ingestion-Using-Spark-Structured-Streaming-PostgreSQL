@@ -80,23 +80,12 @@ This approach mimics a real streaming source using a file-based system.
 
 ## System Architecture
 
-```
+![Architectural Diagram ](../images/Architectural_Diagram_Spark_Streaming.png)
 
-Data Generator
-|
-v
-CSV Files (data/events/)
-|
-v
-Spark Structured Streaming
-|
-v
-PostgreSQL Database
 
-```
 
 This architecture follows a common real-time data engineering pattern:
-**Producer → Streaming Processor → Persistent Storage**
+**Producer > Streaming Processor >  Persistent Storage**
 
 ---
 
@@ -127,7 +116,6 @@ Through this project, the student gained hands-on experience with:
 - Real-time data ingestion patterns
 - JDBC-based database integration
 - Docker and Docker Compose workflows
-- Debugging distributed systems and containerized applications
 
 This project serves as a strong foundation for building more advanced streaming pipelines using message brokers such as Kafka and cloud-based data platforms.
 
