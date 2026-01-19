@@ -26,7 +26,7 @@ CREATE DATABASE ecommerce_database;
 -- Step 5: Create the improved events table
 
 CREATE TABLE events (
-    id              BIGSERIAL PRIMARY KEY,                  -- Auto-incrementing surrogate key
+    id              BIGSERIAL PRIMARY KEY,              
     
     user_id         BIGINT,
     action          VARCHAR(50) NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE events (
 );
 
 
--- Step 6: Create useful indexes
+-- Step 6: Creating useful indexes
 
 
 -- For time-based queries and recent data
@@ -52,7 +52,7 @@ CREATE INDEX idx_event_time ON events (event_time DESC);
 -- For ingestion monitoring / auditing
 CREATE INDEX idx_ingestion_time ON events (ingestion_time DESC);
 
--- For filtering by action (common in analytics)
+-- For filtering by action
 CREATE INDEX idx_action ON events (action);
 
 -- For user behavior analysis

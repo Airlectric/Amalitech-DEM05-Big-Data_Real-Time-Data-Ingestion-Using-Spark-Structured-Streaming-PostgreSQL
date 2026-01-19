@@ -16,14 +16,14 @@ DB_USER = os.getenv("DB_USER")
 DB_PASS = os.getenv("DB_PASS")
 DATA_DIR = os.getenv("DATA_DIR", "/opt/spark/app/data/events")
 
-# Initialize Spark with PostgreSQL JDBC
+# Initialized Spark with PostgreSQL JDBC
 spark = SparkSession.builder \
     .appName("EcommerceRealTimeIngestion") \
     .config("spark.jars", "/opt/spark/app/lib/postgresql-42.7.1.jar") \
     .config("spark.sql.streaming.checkpointLocation", "/opt/spark/app/checkpoint") \
     .getOrCreate()
 
-# Define expected schema (explicit is better for production)
+# Defined expected schema
 schema = """
     user_id LONG,
     action STRING,
@@ -48,7 +48,7 @@ streaming_df = spark.readStream \
 cleaned_df = ( 
     streaming_df 
 
-    # 1. Timestamp parsing - try multiple formats
+    # 1. Timestamp parsing - trying multiple formats
     .withColumn(
         "event_time",
         coalesce(
@@ -74,8 +74,8 @@ cleaned_df = (
         when(col("action").isin("VIEW", "PURCHASE", "ADD_TO_CART", "REMOVE_FROM_CART"), col("action"))
          .otherwise("UNKNOWN")
     )
-    
-    # 3. Fix prices - no negatives, replace with 0 or median later if needed
+
+    # 3. Fix prices - no negatives, replacing with 0
     .withColumn("price", when(col("price") >= 0, col("price")).otherwise(0.0))
     
     # 4. Clean IDs - replace invalid with null
@@ -89,7 +89,7 @@ cleaned_df = (
     .withColumn("session_id", coalesce(col("session_id"), lit("unknown")))
 )
 
-# Final columns we want to store
+# Final columns to be stored
 final_df = cleaned_df.select(
     "user_id",
     "action",
@@ -100,7 +100,7 @@ final_df = cleaned_df.select(
     "session_id"
 )
 
-# Write to PostgreSQL using foreachBatch
+# Writing to PostgreSQL using foreachBatch
 def write_batch(batch_df, batch_id):
     if batch_df.count() > 0:
         batch_df.write \
