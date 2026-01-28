@@ -17,7 +17,7 @@ PRODUCTS = [
     'Tablet', 'Monitor', 'Keyboard'
 ]
 
-def generate_fake_event(batch_num):
+def generate_fake_event(batch_num=0):
     timestamp = datetime.now()
     
     if random.random() < 0.05:
@@ -39,13 +39,13 @@ def generate_fake_event(batch_num):
         action = random.choice(['', None, 'VIEW', 'Purchase'])
 
     return {
-        'user_id': random.randint(1, 1200) if random.random() > 0.02 else None,
+        'user_id': random.randint(1000, 9999) if random.random() > 0.02 else '',
         'action': action,
-        'product_id': random.randint(1001, 2500) if random.random() > 0.015 else -1,
+        'product_id': random.randint(1, 1000) if random.random() > 0.015 else '',
         'product_name': random.choice(PRODUCTS) if random.random() > 0.01 else '',
-        'price': price,
+        'price': price if random.random() > 0.01 else '',
         'timestamp': timestamp_str,
-        'session_id': str(random.randint(10000, 99999)) if random.random() < 0.9 else None
+        'session_id': str(random.randint(10000, 99999)) if random.random() < 0.9 else ''
     }
 
 
@@ -94,3 +94,4 @@ if __name__ == "__main__":
     print(f"Overall throughput:        {overall_throughput:.1f} events/second")
     print(f"Effective rate (incl. sleep): {total_events / (total_time + (NUM_BATCHES * SLEEP_INTERVAL)):.1f} events/second")
     print("="*70)
+

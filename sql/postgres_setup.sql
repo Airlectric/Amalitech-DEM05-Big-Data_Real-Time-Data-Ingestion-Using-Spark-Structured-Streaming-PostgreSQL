@@ -60,3 +60,17 @@ CREATE INDEX idx_user_action ON events (user_id, action);
 
 -- composite index useful for product performance
 CREATE INDEX idx_product_action ON events (product_id, action);
+
+
+-- Step 7: Create corrupt_records table for PERMISSIVE mode
+
+CREATE TABLE corrupt_records (
+    id              BIGSERIAL PRIMARY KEY,
+    corrupt_record  TEXT NOT NULL,
+    detected_at     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    batch_id        BIGINT,
+    error_type      VARCHAR(100) DEFAULT 'CSV_PARSE_ERROR'
+);
+
+-- Index for querying recent corrupt records
+CREATE INDEX idx_corrupt_detected_at ON corrupt_records (detected_at DESC);

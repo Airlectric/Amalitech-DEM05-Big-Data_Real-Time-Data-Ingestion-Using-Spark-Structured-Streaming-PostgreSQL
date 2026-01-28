@@ -3,7 +3,9 @@ from pyspark.sql.functions import (
     col, to_timestamp, when, expr, lit, current_timestamp,
     coalesce, trim, upper, regexp_replace
 )
-from pyspark.sql.types import StructType, StructField, LongType, StringType, DoubleType, TimestampType
+from pyspark.sql.types import (
+    StructType, StructField, StringType, LongType, DoubleType
+)
 import os
 from dotenv import load_dotenv
 
@@ -37,7 +39,8 @@ schema = StructType([
     StructField("product_name", StringType(), True),
     StructField("price", DoubleType(), True),
     StructField("timestamp", StringType(), True),
-    StructField("session_id", StringType(), True)
+    StructField("session_id", StringType(), True),
+    StructField("_corrupt_record", StringType(), True)
 ])
 
 print("Starting streaming ingestion from:", DATA_DIR)
@@ -95,7 +98,7 @@ cleaned_df = (
     .withColumn("session_id", coalesce(col("session_id"), lit("unknown")))
 )
 
-# Final columns to be stored
+# Final columns to be stored (including _corrupt_record for filtering)
 final_df = cleaned_df.select(
     "user_id",
     "action",
@@ -103,13 +106,29 @@ final_df = cleaned_df.select(
     "product_name",
     "price",
     "event_time",
-    "session_id"
+    "session_id",
+    col("_corrupt_record")
 )
 
 # Writing to PostgreSQL using foreachBatch
 def write_batch(batch_df, batch_id):
-    if batch_df.count() > 0:
-        batch_df.write \
+    # Separate clean and corrupt records
+    clean_records = batch_df.filter(col("_corrupt_record").isNull())
+    corrupt_records = batch_df.filter(col("_corrupt_record").isNotNull())
+    
+    # Cache both dataframes to avoid recomputation
+    clean_records.cache()
+    corrupt_records.cache()
+    
+    clean_count = 0
+    corrupt_count = 0
+    
+    # Write clean records to events table
+    try:
+        clean_records.select(
+            "user_id", "action", "product_id", "product_name",
+            "price", "event_time", "session_id"
+        ).write \
             .format("jdbc") \
             .option("url", f"jdbc:postgresql://{DB_HOST}:{DB_PORT}/{DB_NAME}") \
             .option("dbtable", "events") \
@@ -117,11 +136,42 @@ def write_batch(batch_df, batch_id):
             .option("password", DB_PASS) \
             .option("driver", "org.postgresql.Driver") \
             .option("batchsize", "2000") \
-            .option("checkpointLocation", "/opt/spark/app/checkpoint/events") \
             .mode("append") \
             .save()
         
-        print(f"Batch {batch_id} written - {batch_df.count()} rows")
+        clean_count = clean_records.count()
+        print(f"Batch {batch_id} written - {clean_count} clean rows")
+    except Exception as e:
+        print(f"Batch {batch_id} - Error writing clean records: {e}")
+    
+    # Write corrupt records to corrupt_records table
+    try:
+        corrupt_records.select(
+            col("_corrupt_record").alias("corrupt_record"),
+            current_timestamp().alias("detected_at"),
+            lit(batch_id).alias("batch_id"),
+            lit("CSV_PARSE_ERROR").alias("error_type")
+        ).write \
+            .format("jdbc") \
+            .option("url", f"jdbc:postgresql://{DB_HOST}:{DB_PORT}/{DB_NAME}") \
+            .option("dbtable", "corrupt_records") \
+            .option("user", DB_USER) \
+            .option("password", DB_PASS) \
+            .option("driver", "org.postgresql.Driver") \
+            .option("batchsize", "2000") \
+            .mode("append") \
+            .save()
+        
+        corrupt_count = corrupt_records.count()
+        if corrupt_count > 0:
+            print(f"Batch {batch_id} - {corrupt_count} corrupt rows logged")
+    except Exception as e:
+        if "corrupt_count" in str(e) or corrupt_count > 0:
+            print(f"Batch {batch_id} - Error writing corrupt records: {e}")
+    
+    # Unpersist cached dataframes
+    clean_records.unpersist()
+    corrupt_records.unpersist()
 
 query = final_df.writeStream \
     .foreachBatch(write_batch) \

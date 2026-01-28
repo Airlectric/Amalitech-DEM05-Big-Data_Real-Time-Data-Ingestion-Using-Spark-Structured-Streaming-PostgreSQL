@@ -1,0 +1,1 @@
+psql -U data_user -d ecommerce_database

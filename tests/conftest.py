@@ -43,16 +43,34 @@ def spark_session():
     spark.stop()
 
 
+@pytest.fixture(scope="module")
+def db_connection():
+    """Create database connection for tests"""
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        yield conn
+        conn.close()
+    except psycopg2.OperationalError as e:
+        pytest.skip(f"Cannot connect to database: {e}")
+
+
 @pytest.fixture(scope="function")
 def clean_test_directory():
     """Clean test data directory before each test - for unit tests"""
+    import shutil
     TEST_DATA_DIR.mkdir(parents=True, exist_ok=True)
-    for file in TEST_DATA_DIR.glob("*.csv"):
-        file.unlink()
+    for item in TEST_DATA_DIR.glob("*"):
+        if item.is_file():
+            item.unlink()
+        elif item.is_dir():
+            shutil.rmtree(item)
     yield TEST_DATA_DIR
     # Cleanup after test
-    for file in TEST_DATA_DIR.glob("*.csv"):
-        file.unlink()
+    for item in TEST_DATA_DIR.glob("*"):
+        if item.is_file():
+            item.unlink()
+        elif item.is_dir():
+            shutil.rmtree(item)
 
 
 @pytest.fixture(scope="function")
@@ -85,17 +103,6 @@ def event_data_dir():
         file.unlink()
     for file in INTEGRATION_DATA_DIR.glob("concurrent_*.csv"):
         file.unlink()
-
-
-@pytest.fixture(scope="module")
-def db_connection():
-    """Create database connection for integration tests"""
-    try:
-        conn = psycopg2.connect(**DB_CONFIG)
-        yield conn
-        conn.close()
-    except psycopg2.OperationalError as e:
-        pytest.skip(f"Cannot connect to database: {e}")
 
 
 @pytest.fixture(scope="session")

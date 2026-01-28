@@ -189,12 +189,33 @@ docker exec -it postgres psql -U data_user -d ecommerce_database
 ### Run Validation Queries
 
 ```sql
+-- Verify tables exist
+\dt
+
+-- Check schema
+SCHEMA |      Name       | Type  |   Owner
+--------+-----------------+-------+-----------
+ public | corrupt_records | table | data_user
+ public | events          | table | data_user
+
+-- Count total events
 SELECT COUNT(*) FROM events;
 
+-- View recent events
 SELECT * FROM events LIMIT 10;
+
+-- Check for corrupt records
+SELECT COUNT(*) FROM corrupt_records;
+SELECT * FROM corrupt_records LIMIT 5;
 ```
 
 You should see rows increasing as Spark processes batches.
+
+### Database Schema Details
+
+**events table**: Stores all validated e-commerce event records with columns for user_id, action, product_id, product_name, price, event_time, session_id, and ingestion_time.
+
+**corrupt_records table**: Stores records that failed CSV parsing validation, preserving the raw corrupt data for debugging and data quality analysis.
 
 ---
 

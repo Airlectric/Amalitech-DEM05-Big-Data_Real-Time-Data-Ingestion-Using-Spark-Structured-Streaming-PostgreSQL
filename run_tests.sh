@@ -28,13 +28,18 @@ cleanup() {
     echo -e "${YELLOW}Cleaning up previous test artifacts...${NC}"
     rm -rf logs/tests/*
     rm -rf data/test_events/*
+    # Remove Python cache files aggressively
+    find ./src -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+    find ./tests -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+    find ./src -type f -name "*.pyc" -delete 2>/dev/null || true
+    find ./tests -type f -name "*.pyc" -delete 2>/dev/null || true
     echo -e "${GREEN}✓ Cleanup complete${NC}\n"
 }
 
 # Function to run unit tests only
 run_unit_tests() {
     echo -e "${BLUE}Running Unit Tests (test_pipeline.py)...${NC}"
-    docker-compose run --rm test pytest tests/test_pipeline.py -v --tb=short --color=yes
+    docker-compose run --rm --remove-orphans test pytest tests/test_pipeline.py -v --tb=short --color=yes
 }
 
 # Function to run integration tests
@@ -42,13 +47,13 @@ run_integration_tests() {
     echo -e "${BLUE}Starting infrastructure for integration tests...${NC}"
     
     # Start postgres and spark
-    docker-compose up -d postgres spark
+    docker-compose up -d --remove-orphans postgres spark
     
     echo -e "${YELLOW}Waiting for services to be ready (30s)...${NC}"
     sleep 30
     
     echo -e "${BLUE}Running Integration Tests (test_integration.py)...${NC}"
-    docker-compose --profile test run --rm test
+    docker-compose --profile test run --rm --remove-orphans test
 }
 
 # Function to run all tests
@@ -67,7 +72,7 @@ run_all_tests() {
 # Function to stop all services
 stop_services() {
     echo -e "\n${YELLOW}Stopping Docker services...${NC}"
-    docker-compose --profile test down
+    docker-compose --profile test down --remove-orphans
     echo -e "${GREEN}✓ Services stopped${NC}"
 }
 

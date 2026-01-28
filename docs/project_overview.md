@@ -60,6 +60,34 @@ This approach mimics a real streaming source using a file-based system.
 - Stores all cleaned and validated events in the `events` table
 - Indexes are applied on commonly queried columns (e.g., timestamp, user_id, action) to improve query performance
 
+#### Database Schema
+
+The PostgreSQL database (`ecommerce_database`) contains two tables:
+
+**Table 1: `events`** (Owner: `data_user`)
+- Stores cleaned and validated e-commerce events
+- Primary key: `id` (BIGSERIAL)
+- Columns:
+  - `user_id` (BIGINT)
+  - `action` (VARCHAR(50)) - Valid values: VIEW, PURCHASE, ADD_TO_CART, REMOVE_FROM_CART, UNKNOWN
+  - `product_id` (BIGINT)
+  - `product_name` (VARCHAR(100))
+  - `price` (NUMERIC(12,2))
+  - `event_time` (TIMESTAMP WITH TIME ZONE)
+  - `session_id` (VARCHAR(50))
+  - `ingestion_time` (TIMESTAMP WITH TIME ZONE) - Auto-generated on insert
+- Indexes: `event_time`, `ingestion_time`, `action`, `user_id + action`, `product_id + action`
+
+**Table 2: `corrupt_records`** (Owner: `data_user`)
+- Stores records that failed validation during CSV parsing
+- Primary key: `id` (BIGSERIAL)
+- Columns:
+  - `corrupt_record` (TEXT) - Raw malformed data
+  - `detected_at` (TIMESTAMP WITH TIME ZONE) - Auto-generated on insert
+  - `batch_id` (BIGINT)
+  - `error_type` (VARCHAR(100)) - Default: 'CSV_PARSE_ERROR'
+- Index: `detected_at`
+
 ---
 
 ### 4. Containerization and Orchestration

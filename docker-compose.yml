@@ -18,24 +18,6 @@ services:
              chown -R postgres:postgres /var/log/postgresql &&
              exec docker-entrypoint.sh postgres > /var/log/postgresql/postgres.log 2>&1"
 
-  spark-master:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.spark
-    image: dem05/ecommerce-spark:1.0
-    container_name: spark_master
-    hostname: spark-master
-    ports:
-      - "8080:8080"   # Spark Master Web UI
-      - "7077:7077"   # Spark Master Port
-    environment:
-      - SPARK_MODE=master
-      - SPARK_MASTER_HOST=spark-master
-      - SPARK_MASTER_PORT=7077
-      - SPARK_MASTER_WEBUI_PORT=8080
-    command: >
-      sh -c "/opt/spark/sbin/start-master.sh && tail -f /opt/spark/logs/spark--org.apache.spark.deploy.master.Master-*.out"
-
   spark:
     build:
       context: .
@@ -46,10 +28,8 @@ services:
       - .env
     environment:
       - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=/opt/spark/app/logs/spark-events
-      - SPARK_MASTER=spark://spark-master:7077
     depends_on:
       - postgres
-      - spark-master
     ports:
       - "4040:4040"   # Spark Application UI with REST API
       - "18080:18080" # Spark History Server UI
@@ -75,6 +55,7 @@ services:
       - .env
     environment:
       RUN_INTEGRATION_TESTS: "true"
+      PYTHONDONTWRITEBYTECODE: "1"
     depends_on:
       - postgres
       - spark
@@ -87,8 +68,8 @@ services:
     working_dir: /opt/spark/app
     command: >
       sh -c "mkdir -p /opt/spark/app/logs/tests &&
-             sleep 25 &&
-             pytest tests/ -v --tb=short --color=yes 2>&1 | tee /opt/spark/app/logs/tests/test_results.log"
+            sleep 25 &&
+            pytest tests/ -v --tb=short --color=yes 2>&1 | tee /opt/spark/app/logs/tests/test_results.log"
     profiles:
       - test
 
