@@ -49,47 +49,48 @@ def generate_fake_event(batch_num):
     }
 
 
-print("Starting fake e-commerce event generation...\n")
+if __name__ == "__main__":
+    print("Starting fake e-commerce event generation...\n")
 
-start_total = time.time()
-total_events = 0
-batch_times = []
+    start_total = time.time()
+    total_events = 0
+    batch_times = []
 
-for batch in range(NUM_BATCHES):
-    batch_start = time.time()
-    
-    events = [generate_fake_event(batch) for _ in range(BATCH_SIZE)]
-    df = pd.DataFrame(events)
-    
-    if batch % 4 != 0:
-        if 'session_id' in df.columns:
-            df = df.drop(columns=['session_id'])
-    
-    file_path = os.path.join(OUTPUT_DIR, f'events_batch_{batch:03d}.csv')
-    df.to_csv(file_path, index=False)
-    
-    batch_duration = time.time() - batch_start
-    events_this_batch = len(df)
-    throughput = events_this_batch / batch_duration if batch_duration > 0 else 0
-    
-    print(f"Batch {batch:3d} | {events_this_batch:4d} rows | "
-          f"Time: {batch_duration:5.2f}s | "
-          f"{throughput:6.1f} rows/sec | {file_path}")
-    
-    total_events += events_this_batch
-    batch_times.append(batch_duration)
-    
-    time.sleep(SLEEP_INTERVAL)
+    for batch in range(NUM_BATCHES):
+        batch_start = time.time()
+        
+        events = [generate_fake_event(batch) for _ in range(BATCH_SIZE)]
+        df = pd.DataFrame(events)
+        
+        if batch % 4 != 0:
+            if 'session_id' in df.columns:
+                df = df.drop(columns=['session_id'])
+        
+        file_path = os.path.join(OUTPUT_DIR, f'events_batch_{batch:03d}.csv')
+        df.to_csv(file_path, index=False)
+        
+        batch_duration = time.time() - batch_start
+        events_this_batch = len(df)
+        throughput = events_this_batch / batch_duration if batch_duration > 0 else 0
+        
+        print(f"Batch {batch:3d} | {events_this_batch:4d} rows | "
+              f"Time: {batch_duration:5.2f}s | "
+              f"{throughput:6.1f} rows/sec | {file_path}")
+        
+        total_events += events_this_batch
+        batch_times.append(batch_duration)
+        
+        time.sleep(SLEEP_INTERVAL)
 
-total_time = time.time() - start_total
-avg_batch_time = sum(batch_times) / len(batch_times) if batch_times else 0
-overall_throughput = total_events / total_time if total_time > 0 else 0
+    total_time = time.time() - start_total
+    avg_batch_time = sum(batch_times) / len(batch_times) if batch_times else 0
+    overall_throughput = total_events / total_time if total_time > 0 else 0
 
-print("\n" + "="*70)
-print("GENERATION COMPLETE")
-print(f"Total events generated:    {total_events:,}")
-print(f"Total time:                {total_time:.2f} seconds")
-print(f"Average time per batch:    {avg_batch_time:.2f} seconds")
-print(f"Overall throughput:        {overall_throughput:.1f} events/second")
-print(f"Effective rate (incl. sleep): {total_events / (total_time + (NUM_BATCHES * SLEEP_INTERVAL)):.1f} events/second")
-print("="*70)
+    print("\n" + "="*70)
+    print("GENERATION COMPLETE")
+    print(f"Total events generated:    {total_events:,}")
+    print(f"Total time:                {total_time:.2f} seconds")
+    print(f"Average time per batch:    {avg_batch_time:.2f} seconds")
+    print(f"Overall throughput:        {overall_throughput:.1f} events/second")
+    print(f"Effective rate (incl. sleep): {total_events / (total_time + (NUM_BATCHES * SLEEP_INTERVAL)):.1f} events/second")
+    print("="*70)

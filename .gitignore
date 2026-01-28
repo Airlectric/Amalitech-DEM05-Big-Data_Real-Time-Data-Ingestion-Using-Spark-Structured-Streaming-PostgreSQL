@@ -7,3 +7,11 @@ setup.md
 logs/
 checkpoint/
 tree
+.spark-warehouse/
+.DS_Store
+.vscode/
+.idea/
+.ipynb_checkpoints/
+*.log
+.venv
+.pytest_cache/

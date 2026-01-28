@@ -41,5 +41,32 @@ services:
       sh -c "mkdir -p /opt/spark/app/logs &&
              exec ./startup.sh > /opt/spark/app/logs/spark_pipeline.log 2>&1"
 
+  test:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.spark
+    image: dem05/ecommerce-spark:1.0
+    container_name: test_runner
+    env_file:
+      - .env
+    environment:
+      RUN_INTEGRATION_TESTS: "true"
+    depends_on:
+      - postgres
+      - spark
+    volumes:
+      - ./src:/opt/spark/app/src
+      - ./tests:/opt/spark/app/tests
+      - ./data:/opt/spark/app/data
+      - ./lib:/opt/spark/app/lib
+      - ./logs/tests:/opt/spark/app/logs/tests
+    working_dir: /opt/spark/app
+    command: >
+      sh -c "mkdir -p /opt/spark/app/logs/tests &&
+             sleep 25 &&
+             pytest tests/ -v --tb=short --color=yes 2>&1 | tee /opt/spark/app/logs/tests/test_results.log"
+    profiles:
+      - test
+
 volumes:
   postgres_data:

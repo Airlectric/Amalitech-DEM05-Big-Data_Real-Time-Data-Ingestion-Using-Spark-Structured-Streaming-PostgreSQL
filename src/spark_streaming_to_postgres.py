@@ -3,7 +3,7 @@ from pyspark.sql.functions import (
     col, to_timestamp, when, expr, lit, current_timestamp,
     coalesce, trim, upper, regexp_replace
 )
-from pyspark.sql.types import TimestampType
+from pyspark.sql.types import StructType, StructField, LongType, StringType, DoubleType, TimestampType
 import os
 from dotenv import load_dotenv
 
@@ -24,15 +24,15 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 # Defined expected schema
-schema = """
-    user_id LONG,
-    action STRING,
-    product_id LONG,
-    product_name STRING,
-    price DOUBLE,
-    timestamp STRING,
-    session_id STRING
-"""
+schema = StructType([
+    StructField("user_id", LongType(), True),
+    StructField("action", StringType(), True),
+    StructField("product_id", LongType(), True),
+    StructField("product_name", StringType(), True),
+    StructField("price", DoubleType(), True),
+    StructField("timestamp", StringType(), True),
+    StructField("session_id", StringType(), True)
+])
 
 print("Starting streaming ingestion from:", DATA_DIR)
 
