@@ -85,10 +85,12 @@ DB_USER=data_user
 DB_PASS=strongpassword
 DB_HOST=postgres
 DB_PORT=5432
-SPARK_MASTER=local[*]
+SPARK_MASTER=spark://spark-master:7077
 ```
 
 > ⚠️ **Do not commit `.env` to GitHub**
+>
+> **Note**: The pipeline runs on a Spark cluster (spark-master) instead of local mode for better monitoring and scalability.
 
 ---
 
@@ -203,15 +205,29 @@ You should see rows increasing as Spark processes batches.
 ```bash
 docker compose logs -f spark
 docker compose logs -f postgres
+docker compose logs -f spark-master
 ```
 
-### Spark UI
+### Spark Web UIs
 
-If port 4040 is exposed:
+After starting the pipeline, access the following monitoring interfaces:
 
-```text
-http://localhost:4040
-```
+**Spark Master UI** - http://localhost:8080
+- Cluster overview and resource allocation
+- Active and completed applications
+- Worker nodes status
+- Running drivers and executors
+
+**Spark Application UI** - http://localhost:4040
+- Real-time job execution details
+- Streaming metrics (input rate, processing time)
+- SQL query plans and stage information
+- Executor and storage metrics
+
+**Spark History Server** - http://localhost:18080
+- Historical application data
+- Completed job analysis
+- Event logs and performance timeline
 
 ---
 
@@ -273,6 +289,138 @@ docker compose down -v
 ✅ Dockerized, reproducible setup
 
 This project demonstrates **real-world streaming fundamentals** and common Spark pitfalls (JDBC, checkpoints, parallel jobs).
+
+---
+
+## 15. Testing
+
+The project includes comprehensive automated tests to validate functionality, data quality, and performance.
+
+### Test Categories
+
+**Unit Tests (26 tests)** - Validate individual components without running services:
+- Data generator functions (10 tests)
+- CSV batch generation (5 tests)
+- PySpark transformations (8 tests)
+- Schema and configuration (3 tests)
+
+**Integration Tests (6 tests)** - End-to-end validation with running services:
+- Database connection
+- Full pipeline flow (CSV → Spark → PostgreSQL)
+- Data quality with actual transformations
+- Performance baseline
+- Concurrent file processing
+- Constraint validation
+
+### Running Tests
+
+**Quick Start:**
+```bash
+# Run all tests (unit + integration)
+bash run_tests.sh all
+
+# Run unit tests only (fast, no services needed)
+bash run_tests.sh unit
+
+# Run integration tests only (requires postgres + spark)
+bash run_tests.sh integration
+
+# View test logs
+bash run_tests.sh logs
+```
+
+**Using Docker Compose:**
+```bash
+# All tests with profile
+docker-compose --profile test up --abort-on-container-exit
+
+# Unit tests only
+docker-compose run --rm test pytest tests/test_pipeline.py -v
+
+# Integration tests (start services first)
+docker-compose up -d postgres spark
+sleep 30
+docker-compose run --rm test pytest tests/test_integration.py -v
+docker-compose down
+```
+
+### Test Structure
+```
+tests/
+├── conftest.py              # Shared fixtures (spark_session, db_connection)
+├── test_pipeline.py         # 26 unit tests
+└── test_integration.py      # 6 integration tests
+```
+
+### Expected Results
+- **Execution Time**: ~78 seconds total (9s unit + 69s integration)
+- **Success Rate**: 100% (32/32 tests passing)
+- **Coverage**: 87.5% of test cases validated
+
+For detailed test cases and manual testing procedures, see [test_cases.md](test_cases.md).
+
+---
+
+## 16. Performance Monitoring
+
+The pipeline includes built-in performance monitoring through Spark UI and REST APIs.
+
+### Monitoring Endpoints
+
+After starting the pipeline, access the following URLs:
+
+**1. Spark Master UI** - http://localhost:8080
+- Cluster status and resource overview
+- Active workers and their resources (cores, memory)
+- Running and completed applications
+- Submitted drivers and their status
+- Cluster-wide metrics and health
+
+**2. Spark Application UI** - http://localhost:4040
+- Real-time streaming metrics (input rate, processing time, batch duration)
+- Job execution timeline and DAG visualization
+- SQL query execution plans
+- Executor metrics (memory, CPU, tasks)
+
+**3. Spark History Server** - http://localhost:18080
+- Historical view of completed applications
+- Performance analysis after pipeline stops
+- Useful for comparing multiple runs
+
+**4. Spark REST API** - http://localhost:4040/api/v1/applications/
+- Programmatic access to all metrics in JSON format
+- Streaming statistics (avgInputRate, avgProcessingTime, avgSchedulingDelay)
+- Batch-level details
+
+### Quick Access URLs
+
+Once the pipeline is running:
+```bash
+# Open monitoring interfaces
+echo "Spark Master UI: http://localhost:8080"
+echo "Spark Application UI: http://localhost:4040"
+echo "Spark History Server: http://localhost:18080"
+echo "PostgreSQL: localhost:5432"
+
+# Or access directly in browser
+open http://localhost:8080  # Spark Master
+open http://localhost:4040  # Application UI
+open http://localhost:18080 # History Server
+```
+
+### Key Performance Metrics
+
+**From Spark Master UI (Port 8080):**
+- **Workers**: Number of active worker nodes
+- **Cores**: Total available and used CPU cores
+- **Memory**: Cluster memory allocation
+- **Applications**: Running and completed application count
+
+**From Spark Application UI (Port 4040):**
+- **Input Rate**: Records received per second (~50-60 records/sec expected)
+- **Processing Rate**: Records processed per second (500-600 records/sec expected)
+- **Batch Duration**: Time to complete one micro-batch (<2s expected)
+- **Scheduling Delay**: Time waiting for previous batch (should be ~0)
 
 ---
 

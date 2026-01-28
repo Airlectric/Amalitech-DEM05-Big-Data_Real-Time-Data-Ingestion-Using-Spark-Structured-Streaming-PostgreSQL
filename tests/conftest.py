@@ -19,7 +19,7 @@ load_dotenv()
 # Test Configuration
 BASE_DIR = Path(__file__).parent.parent
 TEST_DATA_DIR = BASE_DIR / "data" / "test_events"
-DATA_DIR = BASE_DIR / "data" / "events"
+INTEGRATION_DATA_DIR = BASE_DIR / "data" / "events"  # For integration tests with actual Spark
 
 DB_CONFIG = {
     "host": os.getenv("DB_HOST", "localhost"),
@@ -45,13 +45,45 @@ def spark_session():
 
 @pytest.fixture(scope="function")
 def clean_test_directory():
-    """Clean test data directory before each test"""
+    """Clean test data directory before each test - for unit tests"""
     TEST_DATA_DIR.mkdir(parents=True, exist_ok=True)
     for file in TEST_DATA_DIR.glob("*.csv"):
         file.unlink()
     yield TEST_DATA_DIR
     # Cleanup after test
     for file in TEST_DATA_DIR.glob("*.csv"):
+        file.unlink()
+
+
+@pytest.fixture(scope="function")
+def event_data_dir():
+    """
+    Return the integration test data directory path
+    This is for integration tests that interact with the actual Spark pipeline
+    Creates directory and cleans up test files after each test
+    """
+    INTEGRATION_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    
+    # Clean up any previous test files
+    for file in INTEGRATION_DATA_DIR.glob("integration_test_*.csv"):
+        file.unlink()
+    for file in INTEGRATION_DATA_DIR.glob("quality_test_*.csv"):
+        file.unlink()
+    for file in INTEGRATION_DATA_DIR.glob("perf_test_*.csv"):
+        file.unlink()
+    for file in INTEGRATION_DATA_DIR.glob("concurrent_*.csv"):
+        file.unlink()
+    
+    yield INTEGRATION_DATA_DIR
+    
+    # Cleanup after test
+    for file in INTEGRATION_DATA_DIR.glob("integration_test_*.csv"):
+        file.unlink()
+    for file in INTEGRATION_DATA_DIR.glob("quality_test_*.csv"):
+        file.unlink()
+    for file in INTEGRATION_DATA_DIR.glob("perf_test_*.csv"):
+        file.unlink()
+    for file in INTEGRATION_DATA_DIR.glob("concurrent_*.csv"):
         file.unlink()
 
 
@@ -64,12 +96,6 @@ def db_connection():
         conn.close()
     except psycopg2.OperationalError as e:
         pytest.skip(f"Cannot connect to database: {e}")
-
-
-@pytest.fixture(scope="module")
-def event_data_dir():
-    """Return the events data directory path"""
-    return DATA_DIR
 
 
 @pytest.fixture(scope="session")

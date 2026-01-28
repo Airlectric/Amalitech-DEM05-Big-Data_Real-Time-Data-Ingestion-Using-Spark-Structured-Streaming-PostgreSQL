@@ -51,10 +51,19 @@ class TestDataGenerator:
         assert isinstance(PRODUCTS, list), "PRODUCTS should be a list"
         assert len(PRODUCTS) > 0, "PRODUCTS list should not be empty"
         
-        # Generate several events and verify product names exist
-        for _ in range(20):
+        # Generate several events and verify product names from PRODUCTS list are used
+        # Note: product_name CAN be empty (1% probability) as part of data quality issues
+        product_names_found = []
+        for _ in range(100):
             event = generate_fake_event(batch_num=0)
-            assert event['product_name'] != '', "product_name should not be empty"
+            if event['product_name'] != '':
+                product_names_found.append(event['product_name'])
+        
+        # Verify that most events have product names from PRODUCTS list
+        assert len(product_names_found) > 95, "At least 95% of events should have product names"
+        # Verify product names come from the PRODUCTS list
+        for name in product_names_found:
+            assert name in PRODUCTS, f"Product name '{name}' should be from PRODUCTS list"
 
     def test_gen_004_user_id_when_present(self):
         """TC-GEN-004: Verify user_id type and range when present"""

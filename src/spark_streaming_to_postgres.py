@@ -16,11 +16,17 @@ DB_USER = os.getenv("DB_USER")
 DB_PASS = os.getenv("DB_PASS")
 DATA_DIR = os.getenv("DATA_DIR", "/opt/spark/app/data/events")
 
-# Initialized Spark with PostgreSQL JDBC
+# Initialized Spark with PostgreSQL JDBC and performance monitoring
 spark = SparkSession.builder \
     .appName("EcommerceRealTimeIngestion") \
     .config("spark.jars", "/opt/spark/app/lib/postgresql-42.7.1.jar") \
     .config("spark.sql.streaming.checkpointLocation", "/opt/spark/app/checkpoint") \
+    .config("spark.eventLog.enabled", "true") \
+    .config("spark.eventLog.dir", "/opt/spark/app/logs/spark-events") \
+    .config("spark.sql.streaming.metricsEnabled", "true") \
+    .config("spark.metrics.namespace", "ecommerce_streaming") \
+    .config("spark.ui.prometheus.enabled", "true") \
+    .config("spark.executor.processTreeMetrics.enabled", "true") \
     .getOrCreate()
 
 # Defined expected schema
